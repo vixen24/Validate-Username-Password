@@ -1,0 +1,34 @@
+const User = require("../models/login")
+const bcrypt = require("bcrypt");
+
+const test = (req, res) => {
+    res.send("Hello World")
+}
+
+const loginUser = async (req, res) => {
+    const newUser = req.body;
+    if (newUser.name && newUser.password) {
+        await User.findOne({name: newUser.name})
+        .then(user => {
+            if(user == null) {
+                return res.status(400).send('Can not find user')
+            }
+            try {
+                bcrypt.compare(newUser.password, user.password, (err, result) => {
+                    if(result) res.send({message: "Login successful"})
+                   else res.json({message: "Wrong username or password"})
+                })
+            } catch {
+                res.status(500).send()
+            }
+        }) 
+        .catch(err => res.send(err))
+    } else {
+        res.json({message: "Enter username and password"})
+    }
+}
+
+module.exports = {
+    test,
+    loginUser
+};

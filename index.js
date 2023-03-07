@@ -3,7 +3,6 @@ if(process.env.NODE_ENV !== 'production') {
 }
 const express = require("express");
 const mongoose = require("mongoose")
-const bcrypt = require("bcrypt");
 const app = express();
 PORT = process.env.PORT || 3000;
 
@@ -13,17 +12,6 @@ mongoose.connect(process.env.DATABASE_URI)
 mongoose.connection.on('error', error => console.error(error))
 mongoose.connection.once('open', () => console.log("Connected to MongoDB"))
 
-const UserSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    password: {
-        type: String,
-        required: true
-    }
-});
-const User = mongoose.model("User", UserSchema)
 
 /*----------------------------------------------------------------------*/
 //Uncomment the save function below to regsiter a new user 
@@ -47,33 +35,8 @@ async function save() {
 
 /*-----------------------------------------------------------------------*/
 
-app.get('/login', (req, res) => {
-    res.send("Hello World")
-})
+const router = require("./routes/router")
 
-app.post('/login', async (req, res) => {
-
-    const newUser = req.body;
-    console.log(newUser)
-    if (newUser.name && newUser.password) {
-        await User.findOne({name: newUser.name})
-        .then(user => {
-            if(user == null) {
-                return res.status(400).send('Can not find user')
-            }
-            try {
-                bcrypt.compare(newUser.password, user.password, (err, result) => {
-                    if(result) res.send({message: "Login successful"})
-                   else res.json({message: "Wrong username or password"})
-                })
-            } catch {
-                res.status(500).send()
-            }
-        }) 
-        .catch(err => res.send(err))
-    } else {
-        res.json({message: "Enter username and password"})
-    }
-})
+app.use("/", router)
 
 app.listen(PORT, console.log('Nodejs Server running on PORT', + 3000))
